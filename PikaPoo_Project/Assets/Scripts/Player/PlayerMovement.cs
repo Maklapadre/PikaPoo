@@ -22,21 +22,16 @@ public class PlayerMovement : MonoBehaviour
     bool isSprinting = false;
     bool isCrouching = false;
 
-    // Inputs
-    float inputHorizontal;
-    float inputVertical;
-    bool inputJump;
-    bool inputCrouch;
-    bool inputSprint;
-
     Animator animator;
     CharacterController cc;
+    InputManager input;
 
 
     void Start()
     {
         cc = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
+        input = GetComponent<InputManager>();
 
         // Message informing the user that they forgot to add an animator
         if (animator == null)
@@ -48,18 +43,8 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
 
-        Debug.Log("isGrounded: " + cc.isGrounded);
-
-        // Input checkers
-        inputHorizontal = Input.GetAxis("Horizontal");
-        inputVertical = Input.GetAxis("Vertical");
-        inputJump = Input.GetAxis("Jump") == 1f;
-        inputSprint = Input.GetAxis("Fire3") == 1f;
-        // Unfortunately GetAxis does not work with GetKeyDown, so inputs must be taken individually
-        inputCrouch = Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.JoystickButton1);
-
         // Check if you pressed the crouch input key and change the player's state
-        if (inputCrouch)
+        if (input.CrouchValue > 0)
             isCrouching = !isCrouching;
 
         // Run and Crouch animation
@@ -76,7 +61,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("run", cc.velocity.magnitude > minimumSpeed);
 
             // Sprint
-            isSprinting = cc.velocity.magnitude > minimumSpeed && inputSprint;
+            isSprinting = cc.velocity.magnitude > minimumSpeed && input.SprintValue > 0;
             animator.SetBool("sprint", isSprinting);
 
         }
@@ -86,7 +71,7 @@ public class PlayerMovement : MonoBehaviour
             animator.SetBool("air", cc.isGrounded == false);
 
         // Handle can jump or not
-        if (inputJump && cc.isGrounded)
+        if (input.JumpValue > 0 && cc.isGrounded)
         {
             isJumping = true;
             // Disable crounching when jumping
@@ -110,8 +95,8 @@ public class PlayerMovement : MonoBehaviour
             velocityAdittion = -(velocity * 0.50f); // -50% velocity
 
         // Direction movement
-        float directionX = inputHorizontal * (velocity + velocityAdittion) * Time.deltaTime;
-        float directionZ = inputVertical * (velocity + velocityAdittion) * Time.deltaTime;
+        float directionX = input.MoveValue.x * (velocity + velocityAdittion) * Time.deltaTime;
+        float directionZ = input.MoveValue.y * (velocity + velocityAdittion) * Time.deltaTime;
         float directionY = 0f;
 
         // Jump handler
@@ -163,8 +148,8 @@ public class PlayerMovement : MonoBehaviour
         Vector3 verticalDirection = Vector3.up * directionY;
         Vector3 horizontalDirection = forward + right;
 
-        Vector3 moviment = verticalDirection + horizontalDirection;
-        cc.Move(moviment);
+        Vector3 movement = verticalDirection + horizontalDirection;
+        cc.Move(movement);
 
     }
 
