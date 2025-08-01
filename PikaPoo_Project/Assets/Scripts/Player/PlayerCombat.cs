@@ -1,15 +1,20 @@
+using System.Collections;
 using UnityEngine;
+using Interfaces;
 
 public class PlayerCombat : MonoBehaviour
 {
-    private PlayerMovement movement;
-
     private Animator animator;
     private CharacterController cc;
     private InputManager input;
 
     private bool wasAttacking = false;
     private bool isAttacking = false;
+
+    [SerializeField] private float Damage;
+    [SerializeField] private float DamageAfterTime; 
+    [SerializeField] private float HeavyDamageAfterTime;
+    private AttackArea attackArea;
 
     void Start()
     {
@@ -24,7 +29,7 @@ public class PlayerCombat : MonoBehaviour
 
         if (input.BasicAttackValue > 0)
         {
-            BasicAttack();
+            OnBasicAttack();
             //if (animator.GetBool("sprint") && cc.isGrounded)
             //{
             //    SprintAttack();
@@ -37,7 +42,7 @@ public class PlayerCombat : MonoBehaviour
 
         if (input.HeavyAttackValue > 0)
         {
-            HeavyAttack();
+            OnHeavyAttack();
             //if (animator.GetBool("sprint") && cc.isGrounded)
             //{
             //    SprintHeavyAttack();
@@ -51,19 +56,21 @@ public class PlayerCombat : MonoBehaviour
         wasAttacking = isAttacking;
     }
 
-    void BasicAttack() 
+    void OnBasicAttack() 
     {
         if (isAttacking && !wasAttacking && cc.isGrounded && !animator.GetBool("sprint"))
         {
             animator.SetTrigger("BasicAttack");
+            StartCoroutine("Hit", false);
         }
     }
 
-    void HeavyAttack() 
+    void OnHeavyAttack() 
     {
         if (isAttacking && !wasAttacking && cc.isGrounded && !animator.GetBool("sprint"))
         {
             animator.SetTrigger("HeavyAttack");
+            StartCoroutine("Hit", true);
         }
     }
 
@@ -76,4 +83,21 @@ public class PlayerCombat : MonoBehaviour
     //{
 
     //}
+
+    private IEnumerator Hit(bool heavy)
+    {
+        yield return new WaitForSeconds(heavy ? HeavyDamageAfterTime : DamageAfterTime);
+        
+        attackArea = GetComponentInChildren<AttackArea>();
+        if (attackArea != null)
+        {
+            foreach (IDamageable damageable in attackArea.DamageablesInRange)
+            {
+                if (damageable.IsAlive())
+                {
+                    damageable.TakeDamage(heavy ? Damage * 1.75f : Damage);
+                }
+            }
+        }
+    }
 }
