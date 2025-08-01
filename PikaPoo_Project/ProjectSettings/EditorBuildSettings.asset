@@ -11,6 +11,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Scene_World_01.unity
     guid: 1f3dd5b836ce73048928c5be5a18cce3
+  - enabled: 1
+    path: Assets/Scenes/Andre_Scenes/TitleScreenScene.unity
+    guid: d0e37909c45ddd3439b29b4b5caa3b1e
+  - enabled: 1
+    path: Assets/Scenes/Andre_Scenes/DemoScene.unity
+    guid: fb1ae43d003105340b5aab6b2fd31af0
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
