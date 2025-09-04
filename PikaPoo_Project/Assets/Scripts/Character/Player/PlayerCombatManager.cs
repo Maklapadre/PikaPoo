@@ -6,7 +6,7 @@ public class PlayerCombat : MonoBehaviour
 {
     private Animator animator;
     private CharacterController cc;
-    private InputManager input;
+    private PlayerInputManager input;
 
     private bool wasAttacking = false;
     private bool isAttacking = false;
@@ -20,7 +20,7 @@ public class PlayerCombat : MonoBehaviour
     {
         cc = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
-        input = GetComponent<InputManager>();
+        input = GetComponent<PlayerInputManager>();
     }
 
     void FixedUpdate()
