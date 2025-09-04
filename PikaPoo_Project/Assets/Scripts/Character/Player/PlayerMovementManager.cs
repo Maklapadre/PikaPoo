@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
+using UnityEngine.Windows;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovementManager : CharacterMovementManager
 {
 
     [Tooltip("Speed ​​at which the character moves. It is not affected by gravity or jumping.")]
@@ -23,15 +24,19 @@ public class PlayerMovement : MonoBehaviour
     bool isCrouching = false;
 
     Animator animator;
-    CharacterController cc;
-    InputManager input;
+    PlayerManager player;
+    PlayerInputManager input;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        player = GetComponent<PlayerManager>();
+        input = GetComponent<PlayerInputManager>();
+    }
 
     void Start()
     {
-        cc = GetComponent<CharacterController>();
         animator = GetComponent<Animator>();
-        input = GetComponent<InputManager>();
 
         // Message informing the user that they forgot to add an animator
         if (animator == null)
@@ -49,7 +54,7 @@ public class PlayerMovement : MonoBehaviour
 
         // Run and Crouch animation
         // If dont have animator component, this block wont run
-        if (cc.isGrounded && animator != null)
+        if (player.cc.isGrounded && animator != null)
         {
 
             // Crouch
@@ -58,35 +63,41 @@ public class PlayerMovement : MonoBehaviour
 
             // Run
             float minimumSpeed = 0.9f;
-            animator.SetBool("run", cc.velocity.magnitude > minimumSpeed);
+            animator.SetBool("run", player.cc.velocity.magnitude > minimumSpeed);
 
             // Sprint
-            isSprinting = cc.velocity.magnitude > minimumSpeed && input.SprintValue > 0;
+            isSprinting = player.cc.velocity.magnitude > minimumSpeed && input.SprintValue > 0;
             animator.SetBool("sprint", isSprinting);
 
         }
 
         // Jump animation
         if (animator != null)
-            animator.SetBool("air", cc.isGrounded == false);
+            animator.SetBool("air", player.cc.isGrounded == false);
 
         // Handle can jump or not
-        if (input.JumpValue > 0 && cc.isGrounded)
+        if (input.JumpValue > 0 && player.cc.isGrounded)
         {
             isJumping = true;
             // Disable crounching when jumping
             //isCrouching = false; 
         }
 
-        HeadHittingDetect();
-
     }
 
-
-    // With the inputs and animations defined, FixedUpdate is responsible for applying movements and actions to the player
-    private void FixedUpdate()
+    public void FixedUpdate()
     {
+        HandleAllMovement();
+    }
 
+    public void HandleAllMovement()
+    {
+        HandleBaseMovement();
+        HeadHittingDetect();
+    }
+
+    private void HandleBaseMovement()
+    {
         // Sprinting velocity boost or crounching desacelerate
         float velocityAdittion = 0;
         if (isSprinting)
@@ -149,17 +160,17 @@ public class PlayerMovement : MonoBehaviour
         Vector3 horizontalDirection = forward + right;
 
         Vector3 movement = verticalDirection + horizontalDirection;
-        cc.Move(movement);
-
+        player.cc.Move(movement);
     }
+
 
 
     //This function makes the character end his jump if he hits his head on something
     void HeadHittingDetect()
     {
         float headHitDistance = 1.1f;
-        Vector3 ccCenter = transform.TransformPoint(cc.center);
-        float hitCalc = cc.height / 2f * headHitDistance;
+        Vector3 ccCenter = transform.TransformPoint(player.cc.center);
+        float hitCalc = player.cc.height / 2f * headHitDistance;
 
         // Uncomment this line to see the Ray drawed in your characters head
         // Debug.DrawRay(ccCenter, Vector3.up * headHeight, Color.red);

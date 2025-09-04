@@ -1,7 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
-public class InputManager : MonoBehaviour
+public class PlayerInputManager : MonoBehaviour
 {
     [Header("Runtime Info:")]
     [SerializeField] private Vector2 _moveValue = Vector2.zero;
@@ -13,9 +14,8 @@ public class InputManager : MonoBehaviour
     [SerializeField] private float _jumpValue = 0f;
     [SerializeField] private float _sprintValue = 0f;
 
+    public static PlayerInputManager Instance;
     private PlayerInput _playerInput = null;
-    Animator animator;
-    CharacterController cc;
 
     // Public accessors
     public Vector2 MoveValue => _moveValue;
@@ -29,8 +29,36 @@ public class InputManager : MonoBehaviour
 
     private void Awake()
     {
-        animator = GetComponent<Animator>();
-        cc = GetComponent<CharacterController>();
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+    }
+
+    private void Start()
+    {
+        DontDestroyOnLoad(gameObject);
+
+        SceneManager.activeSceneChanged += OnSceneChange;
+
+        Instance.enabled = true; // Disable player input until we are in the world scene
+    }
+
+    private void OnSceneChange(Scene oldScene, Scene newScene)
+    {
+        if (newScene.buildIndex == WorldSaveGameManager.Instance.GetWorldSceneIndex()) // If we are loading in the world scene, enable player input
+        {
+            Instance.enabled = true;
+        }
+        else
+        {
+            Instance.enabled = false; // Disable player input in other scenes (which should be menu scenes)
+        }
     }
 
     private void OnEnable()
